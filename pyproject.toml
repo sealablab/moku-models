@@ -3,7 +3,7 @@ name = "moku-models"
 version = "0.1.0"
 description = "Pydantic models for Moku device deployment, discovery, and configuration"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 authors = [
     { name = "Sealab Team" }
 ]
@@ -33,7 +33,7 @@ target-version = ["py311"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py310"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
