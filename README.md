@@ -2,6 +2,8 @@
 
 Pydantic models for Moku device deployment, discovery, and configuration.
 
+**For detailed usage and development guidelines, see [CLAUDE.md](CLAUDE.md)**
+
 ## Overview
 
 This package provides the core data models for working with Moku devices:
@@ -10,7 +12,7 @@ This package provides the core data models for working with Moku devices:
 - **SlotConfig**: Per-slot instrument configuration (CloudCompile, Oscilloscope, etc.)
 - **MokuConnection**: MCC signal routing between slots and physical ports
 - **MokuDeviceInfo**: Device discovery and caching models
-- **Platform Models**: Moku:Go, Moku:Lab, Moku:Pro specifications
+- **Platform Models**: Moku:Go, Moku:Lab, Moku:Pro, Moku:Delta specifications
 
 ## Installation
 
@@ -28,11 +30,12 @@ uv pip install -e .
 ## Usage
 
 ```python
-from moku_models import MokuConfig, SlotConfig, MokuConnection, MOKU_GO_PLATFORM
+from moku_models import MokuConfig, SlotConfig, MokuConnection
+from moku_models import MOKU_GO_PLATFORM, MOKU_LAB_PLATFORM, MOKU_PRO_PLATFORM, MOKU_DELTA_PLATFORM
 
-# Create a deployment configuration
+# Create a deployment configuration for Moku:Go
 config = MokuConfig(
-    platform=MOKU_GO_PLATFORM,
+    platform=MOKU_GO_PLATFORM,  # 2 slots, 125 MHz
     slots={
         1: SlotConfig(
             instrument='CloudCompile',
@@ -41,13 +44,43 @@ config = MokuConfig(
         ),
         2: SlotConfig(
             instrument='Oscilloscope',
-            settings={'sample_rate': 1e6}
+            settings={'sample_rate': 125e6}
         )
     },
     routing=[
-        MokuConnection(source='Input1', destination='Slot1InA'),
-        MokuConnection(source='Slot1OutA', destination='Output1'),
-        MokuConnection(source='Slot2OutA', destination='Output2')
+        MokuConnection(source='IN1', destination='Slot1InA'),
+        MokuConnection(source='Slot1OutA', destination='OUT1'),
+        MokuConnection(source='Slot1OutA', destination='Slot2InA')
+    ]
+)
+
+# For Moku:Pro (4 slots, 1.25 GHz)
+pro_config = MokuConfig(
+    platform=MOKU_PRO_PLATFORM,
+    slots={
+        1: SlotConfig(instrument='WaveformGenerator'),
+        2: SlotConfig(instrument='CloudCompile', bitstream='custom.tar'),
+        3: SlotConfig(instrument='Oscilloscope'),
+        4: SlotConfig(instrument='SpectrumAnalyzer')
+    },
+    routing=[
+        MokuConnection(source='Slot1OutA', destination='Slot2InA'),
+        MokuConnection(source='Slot2OutA', destination='OUT1')
+    ]
+)
+
+# For Moku:Delta (3 slots, 5 GHz, 8 I/O channels)
+delta_config = MokuConfig(
+    platform=MOKU_DELTA_PLATFORM,
+    slots={
+        1: SlotConfig(instrument='CloudCompile', bitstream='emfi.tar'),
+        2: SlotConfig(instrument='Oscilloscope', settings={'sample_rate': 5e9}),
+        3: SlotConfig(instrument='WaveformGenerator')
+    },
+    routing=[
+        MokuConnection(source='IN1', destination='Slot1InA'),
+        MokuConnection(source='Slot1OutA', destination='OUT1'),
+        MokuConnection(source='Slot3OutA', destination='IN8')  # 8 channels available
     ]
 )
 
@@ -64,10 +97,12 @@ else:
 ### MokuConfig
 
 The central deployment abstraction. Specifies:
-- Which platform (Go/Lab/Pro)
-- Instruments in each slot (1-4 for Go)
+- Which platform (Go/Lab/Pro/Delta)
+- Instruments in each slot (2-4 slots depending on platform)
 - MCC signal routing
 - Metadata (version, deployment info)
+
+See [docs/MOKU_PLATFORM_SPECIFICATIONS.md](docs/MOKU_PLATFORM_SPECIFICATIONS.md) for detailed hardware specs.
 
 ### SlotConfig
 
@@ -85,8 +120,20 @@ Signal routing between:
 
 ### Platform Models
 
-- `MOKU_GO_PLATFORM`: 4 slots, 2 analog in/out, 125 MHz sampling
-- Additional platforms in `moku_models.platforms`
+| Platform | Slots | Analog I/O | Clock | DIO | Constant |
+|----------|-------|------------|-------|-----|----------|
+| Moku:Go | 2 | 2 IN / 2 OUT | 125 MHz | 16 pins | `MOKU_GO_PLATFORM` |
+| Moku:Lab | 2 | 2 IN / 2 OUT | 500 MHz | None | `MOKU_LAB_PLATFORM` |
+| Moku:Pro | 4 | 4 IN / 4 OUT | 1.25 GHz | None | `MOKU_PRO_PLATFORM` |
+| Moku:Delta | 3 | 8 IN / 8 OUT | 5 GHz | 32 pins | `MOKU_DELTA_PLATFORM` |
+
+**Notes**:
+- Lab/Pro have no DIO headers (only Go and Delta)
+- Delta has 2×16-pin headers (32 total)
+- Delta uses 3-slot mode (better performance than 8-slot mode)
+- Official datasheets available in `datasheets/` directory
+
+For complete platform specifications and datasheet references, see [docs/MOKU_PLATFORM_SPECIFICATIONS.md](docs/MOKU_PLATFORM_SPECIFICATIONS.md).
 
 ## Design Philosophy
 
@@ -109,6 +156,12 @@ pytest
 black moku_models/
 ruff check moku_models/
 ```
+
+## Documentation
+
+- **[CLAUDE.md](CLAUDE.md)** - Development guidelines and AI assistant context
+- **[docs/MOKU_PLATFORM_SPECIFICATIONS.md](docs/MOKU_PLATFORM_SPECIFICATIONS.md)** - Detailed hardware specifications from official datasheets
+- **[datasheets/](datasheets/)** - Official Liquid Instruments datasheets (Moku:Go, Lab, Pro, Delta)
 
 ## License
 
