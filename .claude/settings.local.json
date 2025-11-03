@@ -4,7 +4,11 @@
       "WebFetch(domain:liquidinstruments.com)",
       "Bash(python:*)",
       "Bash(find:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add comprehensive Moku platform support (Lab, Pro, Delta)\n\nMajor platform additions:\n- Add MokuLabPlatform (2 slots, 2 I/O, 500 MHz, no DIO)\n- Add MokuProPlatform (4 slots, 4 I/O, 1.25 GHz, no DIO)\n- Add MokuDeltaPlatform (3 slots, 8 I/O, 5 GHz, 32 DIO)\n\nDocumentation improvements:\n- Add CLAUDE.md for AI assistant context\n- Add llms.txt for LLM discoverability\n- Add comprehensive platform specs in docs/MOKU_PLATFORM_SPECIFICATIONS.md\n- Include official datasheets (Go, Lab, Pro, Delta)\n- Update README with all platforms and usage examples\n\nPlatform specifications:\n- Detailed ADC/DAC specs from official datasheets\n- Voltage ranges, impedance, and bandwidth documented\n- DIO header support (Go: 16 pins, Delta: 32 pins, Lab/Pro: none)\n- Delta modeled in 3-slot standard mode (better sampling rates)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
