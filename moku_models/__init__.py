@@ -10,7 +10,7 @@ Core Abstraction:
 
 from moku_models.platforms.moku_go import MokuGoPlatform, MOKU_GO_PLATFORM
 from moku_models.routing import MokuConnection, MokuConnectionList
-from moku_models.platform_config import MokuConfig, SlotConfig, MokuPlatformConfig
+from moku_models.moku_config import MokuConfig, SlotConfig, MokuPlatformConfig
 from moku_models.discovery import MokuDeviceInfo, MokuDeviceCache
 
 __all__ = [
