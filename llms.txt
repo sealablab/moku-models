@@ -104,6 +104,14 @@ errors = config.validate_routing()
 # Returns: list[str] of validation errors (empty if valid)
 ```
 
+## Documentation
+
+- **README.md** - Installation and basic usage
+- **CLAUDE.md** - AI assistant context and development guidelines
+- **docs/MOKU_PLATFORM_SPECIFICATIONS.md** - Detailed hardware specs from datasheets
+- **docs/routing_patterns.md** - Common MCC routing patterns and best practices
+- **datasheets/** - Official Liquid Instruments PDFs
+
 ## File Structure
 
 ```
