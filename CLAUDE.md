@@ -9,7 +9,8 @@
 - **CocotB Simulation**: Behavioral instrument models in test environments
 - **YAML Configuration**: Human-friendly deployment specs
 
-**Parent Project**: Part of [EZ-EMFI](https://github.com/sealablab/EZ-EMFI) (git submodule at `moku-models/`)
+**Part of:** [moku-instrument-forge-mono-repo](https://github.com/sealablab/moku-instrument-forge-mono-repo) (monorepo orchestrator)
+**Used by:** [moku-instrument-forge](https://github.com/sealablab/moku-instrument-forge) (forge code generation)
 
 **Platform Specifications**: See `docs/MOKU_PLATFORM_SPECIFICATIONS.md` for detailed hardware specs and datasheet references
 
@@ -249,31 +250,31 @@ config = MokuConfig.from_dict(data)
 
 ---
 
-## Integration with Parent EZ-EMFI
+## Integration with forge Code Generation
 
-**Import from submodule** (parent project imports this):
+**Import in forge generators and parent monorepo:**
 ```python
-# In parent EZ-EMFI project
 from moku_models import MokuConfig, MOKU_GO_PLATFORM
 ```
 
-**Use cases**:
+**Use cases:**
 - VHDL build scripts query platform specs (clock frequency, I/O count)
 - CocotB tests import `MokuConfig` for behavioral models
 - Python TUI apps use `MokuConnection` for routing visualization
+- forge code generation uses platform specs for validation
 
-**Git Submodule Workflow**:
+**Git Submodule Workflow:**
 ```bash
-# From parent EZ-EMFI repo
-cd moku-models/
+# From forge/libs/moku-models (nested submodule)
+cd forge/libs/moku-models/
 git checkout -b add-feature
 # Make changes
 git commit -m "Add feature"
 git push origin add-feature
 
-# Update parent to use new submodule commit
-cd ..
-git add moku-models/
+# Update parent forge to use new commit
+cd ../..
+git add libs/moku-models/
 git commit -m "Update moku-models submodule"
 ```
 

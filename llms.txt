@@ -144,19 +144,13 @@ moku_models/
 
 ## Integration Notes
 
-**Used by:**
-- [moku-instrument-forge](https://github.com/sealablab/moku-instrument-forge) - Deployment configuration
-- Simulation frameworks (CocotB testbenches)
-- Deployment automation tools
+**Used by:** moku-instrument-forge (deployment), CocotB testbenches (simulation), deployment automation tools
 
 **Works with:**
-- [basic-app-datatypes](../basic-app-datatypes/) - Voltage type validation
-- [riscure-models](../riscure-models/) - Cross-platform voltage safety
+- [basic-app-datatypes](https://github.com/sealablab/basic-app-datatypes) (sibling library) - Voltage type validation
+- [riscure-models](https://github.com/sealablab/riscure-models) (sibling library) - Cross-platform voltage safety
 
-**Validation flow:**
-```
-MokuConfig → validate platform specs → validate routing → deployment-ready
-```
+**Validation flow:** MokuConfig → validate platform specs → validate routing → deployment-ready
 
 ## For More Details
 
@@ -174,6 +168,7 @@ MokuConfig → validate platform specs → validate routing → deployment-ready
 ---
 
 **Version:** Current
-**Last Updated:** 2025-11-03
-**Parent Project:** [moku-instrument-forge](https://github.com/sealablab/moku-instrument-forge)
+**Last Updated:** 2025-11-04
 **License:** MIT
+**Part of:** [moku-instrument-forge-mono-repo](https://github.com/sealablab/moku-instrument-forge-mono-repo) (monorepo orchestrator)
+**Used by:** [moku-instrument-forge](https://github.com/sealablab/moku-instrument-forge) (forge code generation)
