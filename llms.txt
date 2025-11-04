@@ -2,28 +2,39 @@
 
 > Pydantic models for Moku device deployment, discovery, and configuration
 
-## Quick Reference
+## What is this?
 
-### Core Models
-- `MokuConfig` - THE central deployment abstraction (use this!)
-- `SlotConfig` - Per-slot instrument configuration
-- `MokuConnection` - Signal routing between ports and slots
-- `MokuDeviceInfo` / `MokuDeviceCache` - Device discovery
+Standalone Pydantic library defining type-safe data models for Moku platform specifications, deployment configurations, and signal routing.
+
+**Key insight:** Single source of truth for platform specs used in both simulation (CocotB) and hardware deployment.
+
+## Core Exports
 
 ### Platform Constants
+
 ```python
 from moku_models import (
     MOKU_GO_PLATFORM,     # 2 slots, 2 I/O, 125 MHz, 16 DIO
     MOKU_LAB_PLATFORM,    # 2 slots, 2 I/O, 500 MHz, no DIO
     MOKU_PRO_PLATFORM,    # 4 slots, 4 I/O, 1.25 GHz, no DIO
-    MOKU_DELTA_PLATFORM   # 3 slots, 8 I/O, 5 GHz, 32 DIO (flagship)
+    MOKU_DELTA_PLATFORM   # 3 slots, 8 I/O, 5 GHz, 32 DIO
 )
 ```
 
-### Basic Usage Pattern
+### Key Classes
+
+- `MokuConfig` - Central deployment abstraction (use this!)
+- `SlotConfig` - Per-slot instrument configuration
+- `MokuConnection` - Signal routing between ports and slots
+- `MokuDeviceInfo` / `MokuDeviceCache` - Device discovery
+- `MokuGoPlatform` / `MokuLabPlatform` / etc. - Platform specifications
+
+## Basic Usage
+
 ```python
 from moku_models import MokuConfig, SlotConfig, MokuConnection, MOKU_GO_PLATFORM
 
+# Create deployment configuration
 config = MokuConfig(
     platform=MOKU_GO_PLATFORM,
     slots={
@@ -44,29 +55,45 @@ if not errors:
 
 ## Platform Comparison
 
-| Platform | Slots | I/O   | Clock    | DIO      | Use Case |
-|----------|-------|-------|----------|----------|----------|
-| Go       | 2     | 2×2   | 125 MHz  | 16 pins  | Education, portable |
-| Lab      | 2     | 2×2   | 500 MHz  | None     | Research, low noise |
-| Pro      | 4     | 4×4   | 1.25 GHz | None     | High-performance |
-| Delta    | 3     | 8×8   | 5 GHz    | 32 pins  | Ultra-performance |
+| Platform | Slots | I/O | Clock | DIO | Use Case |
+|----------|-------|-----|-------|-----|----------|
+| Go | 2 | 2×2 | 125 MHz | 16 pins | Education, portable |
+| Lab | 2 | 2×2 | 500 MHz | None | Research, low noise |
+| Pro | 4 | 4×4 | 1.25 GHz | None | High-performance |
+| Delta | 3 | 8×8 | 5 GHz | 32 pins | Ultra-performance |
 
-## Key Design Principles
+## Common Tasks
 
-1. **Single Source of Truth**: Same models for simulation (CocotB) AND hardware
-2. **Type Safety**: Pydantic validation catches errors before deployment
-3. **Pure Data Models**: No deployment logic, just validated structures
-4. **Moku API Aligned**: Port naming matches 1st-party `moku` library
+**Query platform specs:**
+```python
+from moku_models import MOKU_DELTA_PLATFORM
 
-## Important Notes
+platform = MOKU_DELTA_PLATFORM
+print(f"Clock: {platform.clock_mhz} MHz")
+print(f"Period: {platform.clock_period_ns} ns")
 
-- **Lab/Pro have NO DIO headers** (only Go and Delta)
-- **Delta modeled in 3-slot mode** (8-slot advanced mode not yet supported)
-- **Port naming**: Use `IN1`-`IN8`, `OUT1`-`OUT8` (not `Input1`, `Output1`)
-- **Slot virtual ports**: `Slot1InA`, `Slot2OutB`, etc. (A/B/C/D channels)
+# Get specific port
+in1 = platform.get_analog_input_by_id('IN1')
+print(f"IN1: {in1.resolution_bits}-bit @ {in1.sample_rate_msa} MSa/s")
+```
 
-## Validation Workflow
+**Export/import YAML:**
+```python
+import yaml
+from moku_models import MokuConfig
 
+# Export
+config_dict = config.to_dict()
+with open('deployment.yaml', 'w') as f:
+    yaml.dump(config_dict, f)
+
+# Import
+with open('deployment.yaml') as f:
+    data = yaml.safe_load(f)
+config = MokuConfig.from_dict(data)
+```
+
+**Validate routing:**
 ```python
 # MokuConfig validates:
 # - Slot numbers within platform limits
@@ -77,70 +104,68 @@ errors = config.validate_routing()
 # Returns: list[str] of validation errors (empty if valid)
 ```
 
-## Documentation
-
-- **README.md** - Installation and basic usage
-- **CLAUDE.md** - AI assistant context and development guidelines
-- **docs/MOKU_PLATFORM_SPECIFICATIONS.md** - Detailed hardware specs from datasheets
-- **datasheets/** - Official Liquid Instruments PDFs
-
 ## File Structure
 
 ```
 moku_models/
-├── __init__.py              # Public API (import from here)
-├── moku_config.py           # MokuConfig, SlotConfig
-├── routing.py               # MokuConnection, MokuConnectionList
-├── discovery.py             # MokuDeviceInfo, MokuDeviceCache
-├── instrument.py            # (Future) Instrument-specific models
+├── __init__.py          # Public API (import from here)
+├── moku_config.py       # MokuConfig, SlotConfig
+├── routing.py           # MokuConnection, MokuConnectionList
+├── discovery.py         # MokuDeviceInfo, MokuDeviceCache
+├── instrument.py        # (Future) Instrument-specific models
 └── platforms/
-    ├── moku_go.py           # MokuGoPlatform
-    ├── moku_lab.py          # MokuLabPlatform
-    ├── moku_pro.py          # MokuProPlatform
-    └── moku_delta.py        # MokuDeltaPlatform
+    ├── moku_go.py       # MokuGoPlatform
+    ├── moku_lab.py      # MokuLabPlatform
+    ├── moku_pro.py      # MokuProPlatform
+    └── moku_delta.py    # MokuDeltaPlatform
 ```
 
-## Common Tasks
+## Key Design Principles
 
-### Export to YAML
-```python
-import yaml
-config_dict = config.to_dict()
-with open('deployment.yaml', 'w') as f:
-    yaml.dump(config_dict, f)
+1. **Single source of truth** - Same models for simulation AND hardware
+2. **Type safety** - Pydantic validation catches errors before deployment
+3. **Pure data models** - No deployment logic, just validated structures
+4. **Moku API aligned** - Port naming matches 1st-party `moku` library
+
+## Important Notes
+
+- **Lab/Pro have NO DIO headers** (only Go and Delta)
+- **Delta modeled in 3-slot mode** (8-slot advanced mode not yet supported)
+- **Port naming**: Use `IN1`-`IN8`, `OUT1`-`OUT8` (not `Input1`, `Output1`)
+- **Slot virtual ports**: `Slot1InA`, `Slot2OutB`, etc. (A/B/C/D channels)
+
+## Integration Notes
+
+**Used by:**
+- [moku-instrument-forge](https://github.com/sealablab/moku-instrument-forge) - Deployment configuration
+- Simulation frameworks (CocotB testbenches)
+- Deployment automation tools
+
+**Works with:**
+- [basic-app-datatypes](../basic-app-datatypes/) - Voltage type validation
+- [riscure-models](../riscure-models/) - Cross-platform voltage safety
+
+**Validation flow:**
+```
+MokuConfig → validate platform specs → validate routing → deployment-ready
 ```
 
-### Load from YAML
-```python
-import yaml
-from moku_models import MokuConfig
+## For More Details
 
-with open('deployment.yaml') as f:
-    data = yaml.safe_load(f)
-config = MokuConfig.from_dict(data)
-```
+**Deep context:** See [CLAUDE.md](CLAUDE.md) for:
+- Complete platform specifications from datasheets
+- Routing patterns and constraints
+- Integration with sibling libraries
+- Development workflow
+- Instrument configuration patterns
 
-### Query Platform Specs
-```python
-platform = MOKU_DELTA_PLATFORM
-print(f"Clock: {platform.clock_mhz} MHz")
-print(f"Period: {platform.clock_period_ns} ns")
+**API documentation:** See [README.md](README.md) for installation
 
-in1 = platform.get_analog_input_by_id('IN1')
-print(f"IN1: {in1.resolution_bits}-bit @ {in1.sample_rate_msa} MSa/s")
-```
-
-## Future Enhancements
-
-- [ ] Instrument-specific settings models (typed dicts)
-- [ ] YAML import/export utilities (native support)
-- [ ] Moku:Delta 8-slot advanced mode support
-- [ ] Voltage range and impedance switchable options
-- [ ] Routing cycle detection
-- [ ] PyPI package publication
+**Datasheets:** See [datasheets/](datasheets/) for official Liquid Instruments PDFs
 
 ---
 
-**Parent Project**: [EZ-EMFI](https://github.com/sealablab/EZ-EMFI) (git submodule)
-**License**: MIT
-**Last Updated**: 2025-01-28
+**Version:** Current
+**Last Updated:** 2025-11-03
+**Parent Project:** [moku-instrument-forge](https://github.com/sealablab/moku-instrument-forge)
+**License:** MIT
