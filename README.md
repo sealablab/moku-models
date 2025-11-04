@@ -166,3 +166,31 @@ ruff check moku_models/
 ## License
 
 MIT License - see LICENSE file for details.
+
+## 🤖 AI Agent Integration
+
+This repository is structured for optimal AI agent assistance:
+
+### Documentation for Agents
+
+- **llms.txt** - Quick reference (Tier 1): Platform catalog (4 platforms), routing patterns, deployment API
+- **CLAUDE.md** - Deep context (Tier 2): Platform specifications from datasheets, routing validation, integration patterns
+- **docs/routing_patterns.md** - MCC routing patterns and best practices
+- **docs/MOKU_PLATFORM_SPECIFICATIONS.md** - Detailed hardware specs with datasheet references
+
+### Loading Strategy
+
+**Progressive disclosure pattern:**
+1. Start with `llms.txt` (~500 tokens) for platform specs and quick queries
+2. Load `CLAUDE.md` (~4k tokens) for detailed integration patterns
+3. Load routing_patterns.md when working with signal routing
+4. Load source files when debugging platform models
+
+### Integration with Sibling Libraries
+
+- **basic-app-datatypes** - Voltage type validation against platform output ranges
+- **riscure-models** - Platform-to-probe connection safety validation
+
+---
+
+**Last Updated:** 2025-11-04 10:35 MST
