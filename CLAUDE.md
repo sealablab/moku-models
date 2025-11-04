@@ -161,6 +161,66 @@ print(f"IN1: {in1.resolution_bits}-bit @ {in1.sample_rate_msa} MSa/s")
 
 ---
 
+## Integration with Sibling Libraries
+
+### With basic-app-datatypes
+
+**Use case:** Platform-aware voltage type validation
+
+```python
+from basic_app_datatypes import BasicAppDataTypes, TYPE_REGISTRY
+from moku_models import MOKU_GO_PLATFORM
+
+# Get type metadata
+voltage_type = BasicAppDataTypes.VOLTAGE_OUTPUT_05V_S16
+metadata = TYPE_REGISTRY[voltage_type]
+# → voltage_range: "±5V"
+
+# Get platform DAC output specs
+platform = MOKU_GO_PLATFORM
+dac_output = platform.get_analog_output_by_id('OUT1')
+# → voltage_range_vpp: 10.0 (±5V)
+
+# Cross-validate: voltage type compatible with platform
+assert metadata.voltage_range == "±5V"
+assert dac_output.voltage_range_vpp == 10.0
+print("✓ VOLTAGE_OUTPUT_05V_S16 compatible with Moku:Go OUT1")
+```
+
+**Integration point:** forge generator uses both libraries to validate YAML specs against platform hardware constraints.
+
+### With riscure-models
+
+**Use case:** Probe input voltage safety validation
+
+```python
+from moku_models import MOKU_GO_PLATFORM
+from riscure_models import DS1120A_PLATFORM
+
+# Get Moku output specification
+moku = MOKU_GO_PLATFORM
+moku_out = moku.get_analog_output_by_id('OUT1')
+# → voltage_range_vpp = 10.0 (±5V), can output 0-3.3V in TTL mode
+
+# Get probe input specification
+probe = DS1120A_PLATFORM
+probe_in = probe.get_port_by_id('digital_glitch')
+# → voltage_min=0V, voltage_max=3.3V (TTL input)
+
+# Validate: Moku TTL output (3.3V) within probe input range (0-3.3V)
+ttl_voltage = 3.3
+if probe_in.is_voltage_compatible(ttl_voltage):
+    print("✓ Safe connection: Moku:Go OUT1 (TTL) → DS1120A digital_glitch")
+else:
+    print("⚠ Voltage incompatibility detected!")
+```
+
+**Integration point:** Deployment validation checks voltage safety before suggesting physical wire connections.
+
+**Safety principle:** Always validate Moku output voltages against probe input limits to prevent hardware damage.
+
+---
+
 ## Common Tasks
 
 ### Add New Platform
